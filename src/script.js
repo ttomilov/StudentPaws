@@ -1,9 +1,21 @@
 const vscode = require('vscode');
 
+const Status = {
+    happy: 'happy',
+    angry: 'angry',
+    neutral: 'neutral',
+    absent: 'absent',
+    coding: 'coding',
+    success: 'success'
+};
+
 class TamagotchiViewProvider {
+    status;
+
     constructor(extensionUri) {
         this._extensionUri = extensionUri;
         this._view = null;
+        this._status = Status.happy;
     }
 
     resolveWebviewView(webviewView) {
@@ -13,7 +25,6 @@ class TamagotchiViewProvider {
             localResourceRoots: [this._extensionUri]
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
-        this.updateDiagnostics();
     }
 
     updateDiagnostics() {
@@ -49,14 +60,18 @@ class TamagotchiViewProvider {
     }
 
     setState(state) {
-        if (this._view) {
-            this._view.webview.postMessage({ state });
+        if (state !== this._status) {
+            this._status = state;
+            if (this._view) {
+                this._view.webview.postMessage({ state });
+            }
         }
     }
 
     _getHtmlForWebview(webview) {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'src', 'webview.js'));
-        const petImageUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
+        const petImageUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'pet_happy.png'));
+        const assetsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets'));
 
         return `
             <!DOCTYPE html>
@@ -73,10 +88,17 @@ class TamagotchiViewProvider {
             <body>
                 <h1>Ваш питомец</h1>
                 <img id="pet-image" src="${petImageUri}" alt="Pet">
+                <script>
+                     window.assetsUri = "${assetsUri}";
+                </script>
                 <script src="${scriptUri}"></script>
             </body>
             </html>
         `;
+    }
+
+    typingText() {
+        this.setState("coding");
     }
 }
 

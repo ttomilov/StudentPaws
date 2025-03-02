@@ -1,6 +1,6 @@
 const images = {
-    happy: "cat_happy.png",
-    angry: "cat_angry.png",
+    happy: "pet_happy.png",
+    angry: "cat_angry.jpg",
     neutral: "cat_neutral.png",
     absent: "cat_absent.png",
     coding: "cat_coding.png",
@@ -11,10 +11,15 @@ window.addEventListener('message', event => {
     const state = event.data.state;
     const petImage = document.getElementById('pet-image');
 
+    if (event.data.baseUri) {
+        baseUri = event.data.baseUri;
+        return;
+    }
+
     if (state === "absent") {
         petImage.style.display = "none";
     } else {
-        petImage.style.display = "block";
-        petImage.src = `assets/${images[state] || images.happy}`;
+        const imageName = images[state] || images.happy;
+        petImage.src = `${window.assetsUri}/${imageName}`;
     }
 });

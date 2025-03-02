@@ -9,11 +9,8 @@ export function activate(context: vscode.ExtensionContext) {
     );
 
     vscode.languages.onDidChangeDiagnostics(() => provider.updateDiagnostics());
-    vscode.window.onDidChangeTextEditorSelection(() => provider.setState("coding"));
 
     context.subscriptions.push(
-        vscode.window.onDidCloseTerminal(() => {
-            provider.checkTerminalSuccess();
-        })
-    );
+        vscode.workspace.onDidChangeTextDocument(() => provider.typingText())
+    )
 }
