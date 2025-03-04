@@ -6,7 +6,8 @@ const Status = {
     neutral: 'neutral',
     absent: 'absent',
     coding: 'coding',
-    success: 'success'
+    success: 'success',
+    failed: 'failed'
 };
 
 class TamagotchiViewProvider {
@@ -16,6 +17,8 @@ class TamagotchiViewProvider {
         this._extensionUri = extensionUri;
         this._view = null;
         this._status = Status.happy;
+        this._terminal = null;
+        this._terminalTimeout = null;
     }
 
     resolveWebviewView(webviewView) {
@@ -25,6 +28,22 @@ class TamagotchiViewProvider {
             localResourceRoots: [this._extensionUri]
         };
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        this._checkTerminalExitCode();
+    }
+
+    _checkTerminalExitCode(){
+        context.subscriptions.push(
+            vscode.window.onDidEndTerminalShellExecution(event => {
+                if (event.exitCode === undefined || event.exitCode === 0) {
+                    this._status(Status.success);
+                } else {
+                    this._status(Status.failed);
+                }
+                this._successTimeout = setTimeout(() => {
+                    this.updateDiagnostics();
+                }, 5000);
+            })
+        );
     }
 
     updateDiagnostics() {
@@ -47,16 +66,9 @@ class TamagotchiViewProvider {
         let state = "happy";
         if (numErrors > 40) state = "absent";
         else if (numErrors > 0) state = "angry";
-        else if (numWarnings > 0) state = "neutral";
+        else if (numWarnings > 0 && numErrors === 0) state = "neutral";
 
         this.setState(state);
-    }
-
-    checkTerminalSuccess() {
-        if (!this._view) return;
-
-        this.setState("success");
-        setTimeout(() => this.updateDiagnostics(), 5000);
     }
 
     setState(state) {
@@ -70,7 +82,13 @@ class TamagotchiViewProvider {
 
     _getHtmlForWebview(webview) {
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'src', 'webview.js'));
-        const petImageUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'pet_happy.png'));
+        const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
+        const petNeutralUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral.png'));
+        const petAngryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry.png'));
+        const petCodingUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding.png'));
+        const petSuccessUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_success.png'));
+        const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
+        const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
         const assetsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets'));
 
         return `
@@ -86,10 +104,9 @@ class TamagotchiViewProvider {
                 </style>
             </head>
             <body>
-                <h1>Ваш питомец</h1>
-                <img id="pet-image" src="${petImageUri}" alt="Pet">
+                <img id="pet-image" src="${petHappyUri}" alt="Pet">
                 <script>
-                     window.assetsUri = "${assetsUri}";
+                    window.assetsUri = "${assetsUri}";
                 </script>
                 <script src="${scriptUri}"></script>
             </body>
