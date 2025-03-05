@@ -15,9 +15,7 @@ class TamagotchiViewProvider {
         this._extensionUri = extensionUri;
         this._view = null;
         this._status = Status.happy;
-        this._terminal = null;
         this._terminalTimeout = null;
-        this._timeout = null;
         this._timeout = null;
     }
 
@@ -37,26 +35,23 @@ class TamagotchiViewProvider {
         vscode.window.onDidEndTerminalShellExecution(event => {
             if (this._terminalTimeout) {
                 clearTimeout(this._terminalTimeout);
-            if (this._terminalTimeout) {
-                clearTimeout(this._successTimeout);
             }
-            let st = this._status;
+            const previousStatus = this._status;
             if (event.exitCode === undefined || event.exitCode === 0) {
                 this.setState(Status.success);
             } else {
                 this.setState(Status.failed);
             }
-            if (this._status != Status.coding) {
+            if (this._status !== Status.coding) {
                 this._timeout = setTimeout(() => {
-                    this.setState(st);
+                    this.setState(previousStatus);
                 }, 5000);
             }
         });
     }
 
     updateDiagnostics() {
-        if (!this._view) return;
-        if (this._status == Status.coding) return;
+        if (!this._view || this._status === Status.coding) return;
 
         const diagnostics = vscode.languages.getDiagnostics();
         let numErrors = 0;
@@ -130,18 +125,11 @@ class TamagotchiViewProvider {
     typingText() {
         if (this._view) {
             this.setState("coding");
-            
-            if (this._timeout) {
-                clearTimeout(this._timeout);
-            }
-
-            this._timeout = setTimeout(() => {
-                this.updateDiagnostics();
-            }, 5000);
 
             if (this._timeout) {
                 clearTimeout(this._timeout);
             }
+
             this._timeout = setTimeout(() => {this._status = 'check', this.updateDiagnostics()}, 1000);
         }
     }
