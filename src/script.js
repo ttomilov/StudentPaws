@@ -106,13 +106,30 @@ class TamagotchiViewProvider {
                 <meta charset="UTF-8">
                 <title>Тамагочи</title>
                 <style>
-                    body { text-align: center; font-family: Arial, sans-serif; background-color: #f9f9f9; }
+                    body { text-align: center; font-family: Arial, sans-serif; background-color: var(--vscode-editor-background); }
+                    .container {
+                        display: grid;
+                        place-items: center;
+                        height: 100vh;
+                    }
                     h1 { color: #333; }
-                    #pet-image { width: 150px; height: 150px; }
+                    #pet-image { 
+                        width: 150px; 
+                        height: 150px;  
+                        margin: auto;
+                        user-drag: none;
+                        -webkit-user-drag: none;
+                        user-select: none;
+                        -moz-user-select: none;
+                        -webkit-user-select: none;
+                        -ms-user-select: none; 
+                    }
                 </style>
             </head>
             <body>
-                <img id="pet-image" src="${petHappyUri}" alt="Pet">
+                <div class="container">
+                    <img id="pet-image" src="${petHappyUri}" alt="Pet">
+                </div>
                 <script>
                     window.assetsUri = "${assetsUri}";
                 </script>
