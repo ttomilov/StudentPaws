@@ -11,17 +11,18 @@ const Status = {
 };
 
 class TamagotchiViewProvider {
-    status;
-
     constructor(extensionUri) {
         this._extensionUri = extensionUri;
         this._view = null;
         this._status = Status.happy;
         this._terminal = null;
         this._terminalTimeout = null;
+        this._successTimeout = null;
     }
 
     resolveWebviewView(webviewView) {
+        if (!webviewView) return;
+
         this._view = webviewView;
         webviewView.webview.options = {
             enableScripts: true,
@@ -31,19 +32,20 @@ class TamagotchiViewProvider {
         this._checkTerminalExitCode();
     }
 
-    _checkTerminalExitCode(){
-        context.subscriptions.push(
-            vscode.window.onDidEndTerminalShellExecution(event => {
-                if (event.exitCode === undefined || event.exitCode === 0) {
-                    this._status(Status.success);
-                } else {
-                    this._status(Status.failed);
-                }
-                this._successTimeout = setTimeout(() => {
-                    this.updateDiagnostics();
-                }, 5000);
-            })
-        );
+    _checkTerminalExitCode() {
+        vscode.window.onDidEndTerminalShellExecution(event => {
+            if (this._successTimeout) {
+                clearTimeout(this._successTimeout);
+            }
+            if (event.exitCode === undefined || event.exitCode === 0) {
+                this.setState(Status.success);
+            } else {
+                this.setState(Status.failed);
+            }
+            this._successTimeout = setTimeout(() => {
+                this.updateDiagnostics();
+            }, 5000);
+        });
     }
 
     updateDiagnostics() {
@@ -81,6 +83,8 @@ class TamagotchiViewProvider {
     }
 
     _getHtmlForWebview(webview) {
+        if (!webview || !this._extensionUri) return '';
+
         const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'src', 'webview.js'));
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
         const petNeutralUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral.png'));
@@ -115,7 +119,9 @@ class TamagotchiViewProvider {
     }
 
     typingText() {
-        this.setState("coding");
+        if (this._view) {
+            this.setState("coding");
+        }
     }
 }
 
