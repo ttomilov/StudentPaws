@@ -18,6 +18,7 @@ class TamagotchiViewProvider {
         this._terminal = null;
         this._terminalTimeout = null;
         this._timeout = null;
+        this._timeout = null;
     }
 
     resolveWebviewView(webviewView) {
@@ -36,34 +37,42 @@ class TamagotchiViewProvider {
         vscode.window.onDidEndTerminalShellExecution(event => {
             if (this._terminalTimeout) {
                 clearTimeout(this._terminalTimeout);
+            if (this._terminalTimeout) {
+                clearTimeout(this._successTimeout);
             }
+            let st = this._status;
             if (event.exitCode === undefined || event.exitCode === 0) {
                 this.setState(Status.success);
             } else {
                 this.setState(Status.failed);
             }
-            this._timeout = setTimeout(() => {
-                this.updateDiagnostics();
-            }, 5000);
+            if (this._status != Status.coding) {
+                this._timeout = setTimeout(() => {
+                    this.setState(st);
+                }, 5000);
+            }
         });
     }
 
     updateDiagnostics() {
         if (!this._view) return;
+        if (this._status == Status.coding) return;
 
         const diagnostics = vscode.languages.getDiagnostics();
         let numErrors = 0;
         let numWarnings = 0;
 
-        diagnostics.forEach(([_, diags]) => {
-            diags.forEach(diag => {
-                if (diag.severity === vscode.DiagnosticSeverity.Error) {
-                    numErrors++;
-                } else if (diag.severity === vscode.DiagnosticSeverity.Warning) {
-                    numWarnings++;
-                }
+        if (diagnostics) {
+            diagnostics.forEach(([_, diags]) => {
+                diags.forEach(diag => {
+                    if (diag.severity === vscode.DiagnosticSeverity.Error) {
+                        numErrors++;
+                    } else if (diag.severity === vscode.DiagnosticSeverity.Warning) {
+                        numWarnings++;
+                    }
+                });
             });
-        });
+        }
 
         let state = "happy";
         if (numErrors > 40) state = "absent";
@@ -129,6 +138,11 @@ class TamagotchiViewProvider {
             this._timeout = setTimeout(() => {
                 this.updateDiagnostics();
             }, 5000);
+
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+            }
+            this._timeout = setTimeout(() => {this._status = 'check', this.updateDiagnostics()}, 1000);
         }
     }
 }
