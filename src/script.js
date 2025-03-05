@@ -17,7 +17,7 @@ class TamagotchiViewProvider {
         this._status = Status.happy;
         this._terminal = null;
         this._terminalTimeout = null;
-        this._successTimeout = null;
+        this._timeout = null;
     }
 
     resolveWebviewView(webviewView) {
@@ -34,15 +34,15 @@ class TamagotchiViewProvider {
 
     _checkTerminalExitCode() {
         vscode.window.onDidEndTerminalShellExecution(event => {
-            if (this._successTimeout) {
-                clearTimeout(this._successTimeout);
+            if (this._terminalTimeout) {
+                clearTimeout(this._terminalTimeout);
             }
             if (event.exitCode === undefined || event.exitCode === 0) {
                 this.setState(Status.success);
             } else {
                 this.setState(Status.failed);
             }
-            this._successTimeout = setTimeout(() => {
+            this._timeout = setTimeout(() => {
                 this.updateDiagnostics();
             }, 5000);
         });
@@ -121,6 +121,14 @@ class TamagotchiViewProvider {
     typingText() {
         if (this._view) {
             this.setState("coding");
+            
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+            }
+
+            this._timeout = setTimeout(() => {
+                this.updateDiagnostics();
+            }, 5000);
         }
     }
 }
