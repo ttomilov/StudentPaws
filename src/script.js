@@ -17,7 +17,9 @@ class TamagotchiViewProvider {
         this._status = Status.happy;
         this._terminal = null;
         this._terminalTimeout = null;
+        this._timeout = null;
         this._successTimeout = null;
+        this._terminalRes = null;
     }
 
     resolveWebviewView(webviewView) {
@@ -37,14 +39,17 @@ class TamagotchiViewProvider {
             if (this._successTimeout) {
                 clearTimeout(this._successTimeout);
             }
+            let st = this._status;
             if (event.exitCode === undefined || event.exitCode === 0) {
                 this.setState(Status.success);
             } else {
                 this.setState(Status.failed);
             }
-            this._successTimeout = setTimeout(() => {
-                this.updateDiagnostics();
-            }, 5000);
+            if (this._status != Status.coding) {
+                this._successTimeout = setTimeout(() => {
+                    this.setState(st);
+                }, 5000);
+            }
         });
     }
 
@@ -121,6 +126,11 @@ class TamagotchiViewProvider {
     typingText() {
         if (this._view) {
             this.setState("coding");
+
+            if (this._timeout) {
+                clearTimeout(this._timeout);
+            }
+            this._timeout = setTimeout(() => this.updateDiagnostics(), 1000);
         }
     }
 }

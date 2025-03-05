@@ -8,8 +8,6 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.registerWebviewViewProvider('tamagotchiView', provider)
     );
 
-    vscode.languages.onDidChangeDiagnostics(() => provider.updateDiagnostics());
-
     context.subscriptions.push(
         vscode.workspace.onDidChangeTextDocument(() => provider.typingText())
     );
