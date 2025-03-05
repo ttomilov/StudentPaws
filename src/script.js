@@ -19,7 +19,6 @@ class TamagotchiViewProvider {
         this._terminalTimeout = null;
         this._timeout = null;
         this._successTimeout = null;
-        this._terminalRes = null;
     }
 
     resolveWebviewView(webviewView) {
@@ -36,7 +35,7 @@ class TamagotchiViewProvider {
 
     _checkTerminalExitCode() {
         vscode.window.onDidEndTerminalShellExecution(event => {
-            if (this._successTimeout) {
+            if (this._terminalTimeout) {
                 clearTimeout(this._successTimeout);
             }
             let st = this._status;
@@ -55,20 +54,23 @@ class TamagotchiViewProvider {
 
     updateDiagnostics() {
         if (!this._view) return;
+        if (this._status == Status.coding) return;
 
         const diagnostics = vscode.languages.getDiagnostics();
         let numErrors = 0;
         let numWarnings = 0;
 
-        diagnostics.forEach(([_, diags]) => {
-            diags.forEach(diag => {
-                if (diag.severity === vscode.DiagnosticSeverity.Error) {
-                    numErrors++;
-                } else if (diag.severity === vscode.DiagnosticSeverity.Warning) {
-                    numWarnings++;
-                }
+        if (diagnostics) {
+            diagnostics.forEach(([_, diags]) => {
+                diags.forEach(diag => {
+                    if (diag.severity === vscode.DiagnosticSeverity.Error) {
+                        numErrors++;
+                    } else if (diag.severity === vscode.DiagnosticSeverity.Warning) {
+                        numWarnings++;
+                    }
+                });
             });
-        });
+        }
 
         let state = "happy";
         if (numErrors > 40) state = "absent";
@@ -130,7 +132,7 @@ class TamagotchiViewProvider {
             if (this._timeout) {
                 clearTimeout(this._timeout);
             }
-            this._timeout = setTimeout(() => this.updateDiagnostics(), 1000);
+            this._timeout = setTimeout(() => {this._status = 'check', this.updateDiagnostics()}, 1000);
         }
     }
 }
