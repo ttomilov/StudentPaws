@@ -6,6 +6,8 @@ const Status = {
     neutral: 'neutral',
     absent: 'absent',
     coding: 'coding',
+    neutral_coding: 'neutral_coding',
+    angry_coding: 'angry_coding',
     success: 'success',
     failed: 'failed'
 };
@@ -17,6 +19,9 @@ class TamagotchiViewProvider {
         this._status = Status.happy;
         this._terminalTimeout = null;
         this._timeout = null;
+        this._errors = 0;
+        this._warnings = 0;
+        this._phase = 0;
     }
 
     resolveWebviewView(webviewView) {
@@ -38,51 +43,52 @@ class TamagotchiViewProvider {
             }
             const previousStatus = this._status;
             if (event.exitCode === undefined || event.exitCode === 0) {
-                this.setState(Status.success);
+                this.setState(Status.success, Status.success);
             } else {
-                this.setState(Status.failed);
+                this.setState(Status.failed, Status.failed);
             }
             if (this._status !== Status.coding) {
                 this._timeout = setTimeout(() => {
-                    this.setState(previousStatus);
+                    this.setState(Status[previousStatus], previousStatus);
                 }, 5000);
             }
         });
     }
 
     updateDiagnostics() {
+        console.log(this._status);
         if (!this._view || this._status === Status.coding) return;
+        if (this._status === Status.neutral_coding) return;
+        if (this._status === Status.angry_coding) return;
 
         const diagnostics = vscode.languages.getDiagnostics();
-        let numErrors = 0;
-        let numWarnings = 0;
+        this._warnings = 0;
+        this._errors = 0;
 
         if (diagnostics) {
             diagnostics.forEach(([_, diags]) => {
                 diags.forEach(diag => {
                     if (diag.severity === vscode.DiagnosticSeverity.Error) {
-                        numErrors++;
+                        this._errors++;
                     } else if (diag.severity === vscode.DiagnosticSeverity.Warning) {
-                        numWarnings++;
+                        this._warnings++;
                     }
                 });
             });
         }
 
-        let state = "happy";
-        if (numErrors > 40) state = "absent";
-        else if (numErrors > 0) state = "angry";
-        else if (numWarnings > 0 && numErrors === 0) state = "neutral";
+        let state = Status.happy;
+        if (this._errors > 40) state = Status.absent;
+        else if (this._errors > 0) state = Status.angry;
+        else if (this._warnings > 0 && this._errors === 0) state = Status.neutral;
 
-        this.setState(state);
+        this.setState(state, state);
     }
 
-    setState(state) {
-        if (state !== this._status) {
-            this._status = state;
-            if (this._view) {
-                this._view.webview.postMessage({ state });
-            }
+    setState(state, status) {
+        this._status = status;
+        if (this._view) {
+            this._view.webview.postMessage({ state });
         }
     }
 
@@ -92,7 +98,12 @@ class TamagotchiViewProvider {
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
         const petNeutralUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral.png'));
         const petAngryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry.jpg'));
-        const petCodingUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding.png'));
+        const petCoding1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding1.png'));
+        const petCoding2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding2.png'));
+        const petCodingNeutral1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral_coding1.png'));
+        const petCodingNeutral2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral_coding2.png'));
+        const petCodingAngry1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry_coding1.png'));
+        const petCodingAngry2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry_coding2.png'));
         const petSuccessUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_success.png'));
         const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
         const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
@@ -112,8 +123,8 @@ class TamagotchiViewProvider {
                     }
                     h1 { color: #333; }
                     #pet-image { 
-                        width: 150px; 
-                        height: 150px;  
+                        width: 100vw; 
+                        height: auto;  
                         margin: auto;
                         user-drag: none;
                         -webkit-user-drag: none;
@@ -136,7 +147,12 @@ class TamagotchiViewProvider {
                         angry: "${petAngryUri}",
                         neutral: "${petNeutralUri}",
                         absent: "${petAbsentUri}",
-                        coding: "${petCodingUri}",
+                        coding0: "${petCoding1Uri}",
+                        coding1: "${petCoding2Uri}",
+                        angry_coding0: "${petCodingAngry1Uri}",
+                        angry_coding1: "${petCodingAngry2Uri}",
+                        neutral_coding0: "${petCodingNeutral1Uri}",
+                        neutral_coding1: "${petCodingNeutral2Uri}",
                         success: "${petSuccessUri}",
                         failed: "${petFailedUri}"
                     };
@@ -160,14 +176,35 @@ class TamagotchiViewProvider {
     }
 
     typingText() {
-        if (this._view) {
-            this.setState("coding");
+        if (this._view && this._status != Status.absent) {
+            let stateName, newStatus;
+
+            switch (this._status) {
+                case Status.happy:
+                case Status.coding:
+                    newStatus = Status.coding;
+                    break;
+                case Status.neutral:
+                case Status.neutral_coding:
+                    newStatus = Status.neutral_coding;
+                    break;
+                case Status.angry:
+                case Status.angry_coding:
+                    newStatus = Status.angry_coding;
+                    break;
+            }
+
+            stateName = newStatus + this._phase;
+
+            this.setState(stateName, newStatus);
+
+            this._phase = (this._phase + 1) % 2;
 
             if (this._timeout) {
                 clearTimeout(this._timeout);
             }
 
-            this._timeout = setTimeout(() => {this._status = 'check', this.updateDiagnostics()}, 1000);
+            this._timeout = setTimeout(() => {this._status = "check"; this.updateDiagnostics()}, 1000);
         }
     }
 }
