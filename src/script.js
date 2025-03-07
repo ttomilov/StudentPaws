@@ -32,9 +32,30 @@ class TamagotchiViewProvider {
             enableScripts: true,
             localResourceRoots: [this._extensionUri]
         };
+        webviewView.onDidChangeVisibility(() => {this._changeStatusOnChangeVisibility()});
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview);
+        this.updateDiagnostics();
         this._checkTerminalExitCode();
     }
+
+    _changeStatusOnChangeVisibility() {
+        if (this._status === Status.angry_coding) {
+            this._status = Status.angry;
+        } else if (this._status === Status.neutral_coding) {
+            this._status = Status.neutral;
+        } else if (this._status === Status.coding) {
+            this._status = Status.happy;
+        } else if (this._status === Status.success) {
+            this.updateDiagnostics();
+            return;
+        } else if (this._status === Status.failed) {
+            this.updateDiagnostics();
+            return;
+        }
+
+        this.setState(this._status, this._status);
+    }
+
 
     _checkTerminalExitCode() {
         vscode.window.onDidEndTerminalShellExecution(event => {
@@ -56,7 +77,6 @@ class TamagotchiViewProvider {
     }
 
     updateDiagnostics() {
-        console.log(this._status);
         if (!this._view || this._status === Status.coding) return;
         if (this._status === Status.neutral_coding) return;
         if (this._status === Status.angry_coding) return;
@@ -137,7 +157,7 @@ class TamagotchiViewProvider {
             </head>
             <body>
                 <div class="container">
-                    <img id="pet-image" src="${petHappyUri}" alt="Pet">
+                    <img id="pet-image" src="" alt="Pet">
                 </div>
                 <script>
                     const vscode = acquireVsCodeApi();
