@@ -89,16 +89,14 @@ class TamagotchiViewProvider {
     _getHtmlForWebview(webview) {
         if (!webview || !this._extensionUri) return '';
 
-        const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'src', 'webview.js'));
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
         const petNeutralUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral.png'));
-        const petAngryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry.png'));
+        const petAngryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry.jpg'));
         const petCodingUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding.png'));
         const petSuccessUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_success.png'));
         const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
         const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
-        const assetsUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets'));
-
+        
         return `
             <!DOCTYPE html>
             <html lang="ru">
@@ -131,9 +129,31 @@ class TamagotchiViewProvider {
                     <img id="pet-image" src="${petHappyUri}" alt="Pet">
                 </div>
                 <script>
-                    window.assetsUri = "${assetsUri}";
+                    const vscode = acquireVsCodeApi();
+                    
+                    const images = {
+                        happy: "${petHappyUri}",
+                        angry: "${petAngryUri}",
+                        neutral: "${petNeutralUri}",
+                        absent: "${petAbsentUri}",
+                        coding: "${petCodingUri}",
+                        success: "${petSuccessUri}",
+                        failed: "${petFailedUri}"
+                    };
+
+                    window.addEventListener('message', event => {
+                        const state = event.data.state;
+                        const petImage = document.getElementById('pet-image');
+
+                        if (state === "absent") {
+                            petImage.style.display = "none";
+                        } else {
+                            petImage.style.display = "block";
+                            const imageName = images[state] || images.happy;
+                            petImage.src = imageName;
+                        }
+                    });
                 </script>
-                <script src="${scriptUri}"></script>
             </body>
             </html>
         `;
