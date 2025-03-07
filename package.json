@@ -1,7 +1,8 @@
 {
-  "name": "Tamagochi",
-  "displayName": "Tamagochi",
-  "description": "A Tamagochi game in VS Code",
+  "name": "Tamagotchi",
+  "publisher": "23216",
+  "displayName": "Tamagotchi",
+  "description": "A Tamagotchi game in VS Code",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.97.0"
