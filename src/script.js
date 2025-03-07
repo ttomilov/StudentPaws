@@ -110,6 +110,8 @@ class TamagotchiViewProvider {
         if (this._view) {
             this._view.webview.postMessage({ state });
         }
+
+        
     }
 
     _getHtmlForWebview(webview) {
@@ -117,7 +119,6 @@ class TamagotchiViewProvider {
 
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
         const petNeutralUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral.png'));
-        const petAngryUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry.jpg'));
         const petCoding1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding1.png'));
         const petCoding2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding2.png'));
         const petCodingNeutral1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral_coding1.png'));
@@ -128,6 +129,15 @@ class TamagotchiViewProvider {
         const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
         const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
         
+        const angryAnim1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim1.png'));
+        const angryAnim2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim2.png'));
+        const angryAnim3Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim3.png'));
+        const angryAnim4Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim4.png'));
+        const angryAnim5Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim5.png'));
+        const angryAnim6Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim6.png'));
+        const angryAnim7Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim7.png'));
+
+
         return `
             <!DOCTYPE html>
             <html lang="ru">
@@ -157,14 +167,13 @@ class TamagotchiViewProvider {
             </head>
             <body>
                 <div class="container">
-                    <img id="pet-image" src="" alt="Pet">
+                    <img id="pet-image" src="${petHappyUri}" alt="Pet">
                 </div>
                 <script>
                     const vscode = acquireVsCodeApi();
                     
                     const images = {
                         happy: "${petHappyUri}",
-                        angry: "${petAngryUri}",
                         neutral: "${petNeutralUri}",
                         absent: "${petAbsentUri}",
                         coding0: "${petCoding1Uri}",
@@ -177,18 +186,56 @@ class TamagotchiViewProvider {
                         failed: "${petFailedUri}"
                     };
 
+                    const animAngry = [
+                        "${angryAnim1Uri}",
+                        "${angryAnim2Uri}",
+                        "${angryAnim3Uri}",
+                        "${angryAnim4Uri}",
+                        "${angryAnim5Uri}",
+                        "${angryAnim6Uri}",
+                        "${angryAnim7Uri}"
+                    ];
+
+                    let prevState = null;
+                    let anim = null;
+                    let indexAngry = 0;
+
                     window.addEventListener('message', event => {
                         const state = event.data.state;
+                        if (state === prevState) return;
+
                         const petImage = document.getElementById('pet-image');
 
-                        if (state === "absent") {
+                        if (state === "angry") {
+                            startAngryAnim();
+                        } else if (state === "absent") {
                             petImage.style.display = "none";
                         } else {
                             petImage.style.display = "block";
                             const imageName = images[state] || images.happy;
                             petImage.src = imageName;
+                            if (anim) clearInterval(anim);    
                         }
+                    
+                        
+                        prevState = state;
                     });
+
+                    function startAngryAnim() {
+                        indexAngry = 0;
+
+                        anim = setInterval(() => {angryAnim()}, 100)
+                    }
+
+                    function angryAnim() {
+                        const petImage = document.getElementById('pet-image');
+
+                        petImage.src = animAngry[indexAngry];
+
+                        indexAngry = (indexAngry + 1) % 7;
+                    }
+
+
                 </script>
             </body>
             </html>
