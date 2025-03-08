@@ -62,17 +62,19 @@ class CatViewProvider {
             if (this._terminalTimeout) {
                 clearTimeout(this._terminalTimeout);
             }
-            const previousStatus = this._status;
+            
             console.log(event.exitCode);
             if (event.exitCode === undefined || event.exitCode === 0) {
-                this.setState(Status.success, Status.success);
+                this.setState(Status.success, this._status);
             } else {
-                this.setState(Status.failed, Status.failed);
+                this.setState(Status.failed, this._status);
             }
-            if (this._status !== Status.coding) {
+            if (this._status !== Status.coding 
+                    && this._status !== Status.angry_coding 
+                    && this._status !== Status.neutral_coding) {
                 this._timeout = setTimeout(() => {
-                    this.setState(Status[previousStatus], previousStatus);
-                }, 5000);
+                    this.setState(this._status, this._status);
+                }, 10000);
             }
         });
     }
@@ -332,6 +334,10 @@ class CatViewProvider {
                 case Status.angry:
                 case Status.angry_coding:
                     newStatus = Status.angry_coding;
+                    break;
+
+                default:
+                    newStatus = Status.coding;
                     break;
             }
 
