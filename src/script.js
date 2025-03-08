@@ -12,7 +12,7 @@ const Status = {
     failed: 'failed'
 };
 
-class TamagotchiViewProvider {
+class CatViewProvider {
     constructor(extensionUri) {
         this._extensionUri = extensionUri;
         this._view = null;
@@ -63,6 +63,7 @@ class TamagotchiViewProvider {
                 clearTimeout(this._terminalTimeout);
             }
             const previousStatus = this._status;
+            console.log(event.exitCode);
             if (event.exitCode === undefined || event.exitCode === 0) {
                 this.setState(Status.success, Status.success);
             } else {
@@ -118,10 +119,7 @@ class TamagotchiViewProvider {
         if (!webview || !this._extensionUri) return '';
 
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
-        const petSuccessUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_success.png'));
         const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
-        const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
-        
         
         const petCoding1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding1.png'));
         const petCoding2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding2.png'));
@@ -155,7 +153,20 @@ class TamagotchiViewProvider {
         const happyAnim6Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim6.png'));
         const happyAnim7Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim7.png'));
         
-
+        const failedAnim1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'failed_anim1.png'));
+        const failedAnim2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'failed_anim2.png'));
+        const failedAnim3Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'failed_anim3.png'));
+        const failedAnim4Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'failed_anim4.png'));
+        const failedAnim5Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'failed_anim5.png'));
+        
+        const successAnim1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim1.png'));
+        const successAnim2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim2.png'));
+        const successAnim3Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim3.png'));
+        const successAnim4Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim4.png'));
+        const successAnim5Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim5.png'));
+        const successAnim6Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim6.png'));
+        const successAnim7Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'success_anim7.png'));
+        
         return `
             <!DOCTYPE html>
             <html lang="ru">
@@ -197,9 +208,7 @@ class TamagotchiViewProvider {
                         angry_coding0: "${petCodingAngry1Uri}",
                         angry_coding1: "${petCodingAngry2Uri}",
                         neutral_coding0: "${petCodingNeutral1Uri}",
-                        neutral_coding1: "${petCodingNeutral2Uri}",
-                        success: "${petSuccessUri}",
-                        failed: "${petFailedUri}"
+                        neutral_coding1: "${petCodingNeutral2Uri}"
                     };
 
                     const animAngry = [
@@ -210,7 +219,7 @@ class TamagotchiViewProvider {
                         "${angryAnim5Uri}",
                         "${angryAnim6Uri}",
                         "${angryAnim7Uri}",
-                        "${angryAnim1Uri}" 
+                        "${angryAnim1Uri}"
                     ];
 
                     const animNeutral = [
@@ -231,8 +240,26 @@ class TamagotchiViewProvider {
                         "${happyAnim4Uri}",
                         "${happyAnim5Uri}",
                         "${happyAnim6Uri}",
-                        "${happyAnim7Uri}", 
+                        "${happyAnim7Uri}",
                         "${happyAnim1Uri}"
+                    ];
+
+                    const animFailed = [
+                        "${failedAnim1Uri}",
+                        "${failedAnim2Uri}",
+                        "${failedAnim3Uri}",
+                        "${failedAnim4Uri}",
+                        "${failedAnim5Uri}"
+                    ];
+
+                    const animSuccess = [
+                        "${successAnim1Uri}",
+                        "${successAnim2Uri}",
+                        "${successAnim3Uri}",
+                        "${successAnim4Uri}",
+                        "${successAnim5Uri}",
+                        "${successAnim6Uri}",
+                        "${successAnim7Uri}"
                     ];
 
                     let prevState = null;
@@ -253,6 +280,10 @@ class TamagotchiViewProvider {
                             startAnim(animNeutral);
                         } else if (state === "happy") {
                             startAnim(animHappy);
+                        } else if (state === "failed") {
+                            startAnim(animFailed);
+                        } else if (state === "success") {
+                            startAnim(animSuccess);
                         } else if (state === "absent") {
                             petImage.src = images[state];   
                         } else {
@@ -275,7 +306,7 @@ class TamagotchiViewProvider {
 
                         petImage.src = animArr[index];
 
-                        index = (index + 1) % 8;
+                        index = (index + 1) % animArr.length;
                     }
 
 
@@ -319,4 +350,4 @@ class TamagotchiViewProvider {
     }
 }
 
-module.exports = { TamagotchiViewProvider };
+module.exports = { CatViewProvider };

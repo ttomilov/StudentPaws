@@ -1,8 +1,8 @@
 import * as vscode from 'vscode';
-import { TamagotchiViewProvider } from './script';
+import { CatViewProvider } from './script';
 
 export function activate(context: vscode.ExtensionContext) {
-    const provider = new TamagotchiViewProvider(context.extensionUri);
+    const provider = new CatViewProvider(context.extensionUri);
 
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider('StudentPaws', provider)
