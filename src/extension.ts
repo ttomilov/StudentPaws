@@ -5,7 +5,7 @@ export function activate(context: vscode.ExtensionContext) {
     const provider = new TamagotchiViewProvider(context.extensionUri);
 
     context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider('tamagotchiView', provider)
+        vscode.window.registerWebviewViewProvider('StudentPaws', provider)
     );
 
     vscode.languages.onDidChangeDiagnostics(() => provider.updateDiagnostics());

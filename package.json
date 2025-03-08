@@ -1,8 +1,8 @@
 {
-  "name": "Tamagotchi",
+  "name": "Student Paws",
   "publisher": "23216",
-  "displayName": "Tamagotchi",
-  "description": "A Tamagotchi game in VS Code",
+  "displayName": "Student Paws",
+  "description": "Very cute programmer cat",
   "version": "0.0.1",
   "engines": {
     "vscode": "^1.97.0"
@@ -11,15 +11,15 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:tamagotchiView"
+    "onView:StudentPaws"
   ],
   "main": "./out/extension.js",
   "contributes": {
     "views": {
       "explorer": [
         {
-          "id": "tamagotchiView",
-          "name": "Tamagotchi",
+          "id": "StudentPaws",
+          "name": "StudentPaws",
           "when": "viewlet != debug",
           "type": "webview"
         }

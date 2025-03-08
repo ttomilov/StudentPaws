@@ -98,9 +98,9 @@ class TamagotchiViewProvider {
         }
 
         let state = Status.happy;
-        if (this._errors > 40) state = Status.absent;
-        else if (this._errors > 0) state = Status.angry;
-        else if (this._warnings > 0 && this._errors === 0) state = Status.neutral;
+        if (this._errors >= 10) state = Status.absent;
+        else if (this._errors >= 5) state = Status.angry;
+        else if (this._warnings > 5 || (this._errors < 5 && this._errors !== 0)) state = Status.neutral;  
 
         this.setState(state, state);
     }
@@ -118,17 +118,18 @@ class TamagotchiViewProvider {
         if (!webview || !this._extensionUri) return '';
 
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
-        const petNeutralUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral.png'));
+        const petSuccessUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_success.png'));
+        const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
+        const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
+        
+        
         const petCoding1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding1.png'));
         const petCoding2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_coding2.png'));
         const petCodingNeutral1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral_coding1.png'));
         const petCodingNeutral2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_neutral_coding2.png'));
         const petCodingAngry1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry_coding1.png'));
         const petCodingAngry2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_angry_coding2.png'));
-        const petSuccessUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_success.png'));
-        const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
-        const petFailedUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_failed.png'));
-        
+
         const angryAnim1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim1.png'));
         const angryAnim2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim2.png'));
         const angryAnim3Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim3.png'));
@@ -137,6 +138,23 @@ class TamagotchiViewProvider {
         const angryAnim6Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim6.png'));
         const angryAnim7Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'angry_anim7.png'));
 
+        const neutralAnim1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim1.png'));
+        const neutralAnim2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim2.png'));
+        const neutralAnim3Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim3.png'));
+        const neutralAnim4Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim4.png'));
+        const neutralAnim5Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim5.png'));
+        const neutralAnim6Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim6.png'));
+        const neutralAnim7Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim7.png'));
+        const neutralAnim8Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'neutral_anim8.png'));
+        
+        const happyAnim1Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim1.png'));
+        const happyAnim2Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim2.png'));
+        const happyAnim3Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim3.png'));
+        const happyAnim4Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim4.png'));
+        const happyAnim5Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim5.png'));
+        const happyAnim6Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim6.png'));
+        const happyAnim7Uri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'happy_anim7.png'));
+        
 
         return `
             <!DOCTYPE html>
@@ -173,8 +191,6 @@ class TamagotchiViewProvider {
                     const vscode = acquireVsCodeApi();
                     
                     const images = {
-                        happy: "${petHappyUri}",
-                        neutral: "${petNeutralUri}",
                         absent: "${petAbsentUri}",
                         coding0: "${petCoding1Uri}",
                         coding1: "${petCoding2Uri}",
@@ -193,46 +209,73 @@ class TamagotchiViewProvider {
                         "${angryAnim4Uri}",
                         "${angryAnim5Uri}",
                         "${angryAnim6Uri}",
-                        "${angryAnim7Uri}"
+                        "${angryAnim7Uri}",
+                        "${angryAnim1Uri}" 
+                    ];
+
+                    const animNeutral = [
+                        "${neutralAnim1Uri}",
+                        "${neutralAnim2Uri}",
+                        "${neutralAnim3Uri}",
+                        "${neutralAnim4Uri}",
+                        "${neutralAnim5Uri}",
+                        "${neutralAnim6Uri}",
+                        "${neutralAnim7Uri}", 
+                        "${neutralAnim8Uri}"
+                    ];
+
+                    const animHappy = [
+                        "${happyAnim1Uri}",
+                        "${happyAnim2Uri}",
+                        "${happyAnim3Uri}",
+                        "${happyAnim4Uri}",
+                        "${happyAnim5Uri}",
+                        "${happyAnim6Uri}",
+                        "${happyAnim7Uri}", 
+                        "${happyAnim1Uri}"
                     ];
 
                     let prevState = null;
                     let anim = null;
-                    let indexAngry = 0;
+                    let index = 0;
 
                     window.addEventListener('message', event => {
                         const state = event.data.state;
                         if (state === prevState) return;
 
                         const petImage = document.getElementById('pet-image');
+                        petImage.style.display = "block";
 
+                        if (anim) clearInterval(anim); 
                         if (state === "angry") {
-                            startAngryAnim();
+                            startAnim(animAngry);
+                        } else if (state === "neutral") {
+                            startAnim(animNeutral);
+                        } else if (state === "happy") {
+                            startAnim(animHappy);
                         } else if (state === "absent") {
-                            petImage.style.display = "none";
+                            petImage.src = images[state];   
                         } else {
-                            petImage.style.display = "block";
                             const imageName = images[state] || images.happy;
-                            petImage.src = imageName;
-                            if (anim) clearInterval(anim);    
+                            petImage.src = imageName;   
                         }
                     
                         
                         prevState = state;
                     });
 
-                    function startAngryAnim() {
-                        indexAngry = 0;
+                    function startAnim(animArr) {
+                        index = 0;
 
-                        anim = setInterval(() => {angryAnim()}, 100)
+                        anim = setInterval(() => {animate(animArr)}, 100);
                     }
 
-                    function angryAnim() {
+                    function animate(animArr) {
                         const petImage = document.getElementById('pet-image');
 
-                        petImage.src = animAngry[indexAngry];
+                        petImage.src = animArr[index];
 
-                        indexAngry = (indexAngry + 1) % 7;
+                        index = (index + 1) % 8;
                     }
 
 
