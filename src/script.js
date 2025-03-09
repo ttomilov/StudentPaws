@@ -17,7 +17,6 @@ class CatViewProvider {
         this._extensionUri = extensionUri;
         this._view = null;
         this._status = Status.happy;
-        this._terminalTimeout = null;
         this._timeout = null;
         this._errors = 0;
         this._warnings = 0;
@@ -60,7 +59,7 @@ class CatViewProvider {
     _checkTerminalExitCode() {
         vscode.window.onDidEndTerminalShellExecution(event => {
             if (this._terminalTimeout) {
-                clearTimeout(this._terminalTimeout);
+                clearTimeout(this._timeout);
             }
             
             console.log(event.exitCode);
