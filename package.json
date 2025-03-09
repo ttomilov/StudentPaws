@@ -1,8 +1,9 @@
 {
-  "name": "Tamagochi",
-  "displayName": "Tamagochi",
-  "description": "A Tamagochi game in VS Code",
-  "version": "0.0.1",
+  "name": "StudentPaws",
+  "publisher": "23216",
+  "displayName": "Student Paws",
+  "description": "Very cute programmer cat",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -10,15 +11,16 @@
     "Other"
   ],
   "activationEvents": [
-    "onView:tamagotchiView"
+    "onView:StudentPaws"
   ],
+  "repository": "https://github.com/ttomilov/Tamagochi",
   "main": "./out/extension.js",
   "contributes": {
     "views": {
       "explorer": [
         {
-          "id": "tamagotchiView",
-          "name": "Tamagotchi",
+          "id": "StudentPaws",
+          "name": "StudentPaws",
           "when": "viewlet != debug",
           "type": "webview"
         }
