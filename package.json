@@ -3,7 +3,7 @@
   "publisher": "23216",
   "displayName": "Student Paws",
   "description": "Very cute programmer cat",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "engines": {
     "vscode": "^1.97.0"
   },
@@ -13,6 +13,7 @@
   "activationEvents": [
     "onView:StudentPaws"
   ],
+  "repository": "https://github.com/ttomilov/Tamagochi",
   "main": "./out/extension.js",
   "contributes": {
     "views": {

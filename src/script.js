@@ -58,23 +58,20 @@ class CatViewProvider {
 
     _checkTerminalExitCode() {
         vscode.window.onDidEndTerminalShellExecution(event => {
-            if (this._terminalTimeout) {
+            if (this._timeout) {
                 clearTimeout(this._timeout);
             }
             
-            console.log(event.exitCode);
             if (event.exitCode === undefined || event.exitCode === 0) {
                 this.setState(Status.success, this._status);
             } else {
                 this.setState(Status.failed, this._status);
             }
-            if (this._status !== Status.coding 
-                    && this._status !== Status.angry_coding 
-                    && this._status !== Status.neutral_coding) {
-                this._timeout = setTimeout(() => {
-                    this.setState(this._status, this._status);
-                }, 10000);
-            }
+
+            this._timeout = setTimeout(() => {
+                this.setState(this._status, this._status);
+            }, 10000);
+        
         });
     }
 
@@ -118,7 +115,7 @@ class CatViewProvider {
 
     _getHtmlForWebview(webview) {
         if (!webview || !this._extensionUri) return '';
-
+        
         const petHappyUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_happy.png'));
         const petAbsentUri = webview.asWebviewUri(vscode.Uri.joinPath(this._extensionUri, 'assets', 'cat_absent.png'));
         
@@ -172,7 +169,7 @@ class CatViewProvider {
             <!DOCTYPE html>
             <html lang="ru">
             <head>
-                <meta charset="UTF-8">
+                <meta charset="UTF-16">
                 <title>Тамагочи</title>
                 <style>
                     body { text-align: center; font-family: Arial, sans-serif; background-color: var(--vscode-editor-background); }
@@ -181,7 +178,15 @@ class CatViewProvider {
                         place-items: center;
                         height: 100vh;
                     }
-                    h1 { color: #333; }
+                    .bottom {
+                        position: absolute;
+                        bottom: 0;
+                        left: 0;
+                        width: 100%;
+                        overflow-wrap: break-word; 
+                        word-break: break-word;
+                    }
+                    h3 { color: #fffafa; }
                     #pet-image { 
                         width: 100vw; 
                         height: auto;  
@@ -199,6 +204,7 @@ class CatViewProvider {
                 <div class="container">
                     <img id="pet-image" src="${petHappyUri}" alt="Pet">
                 </div>
+                <h3 id="funny-facts" class="bottom"></h1>
                 <script>
                     const vscode = acquireVsCodeApi();
                     
@@ -266,14 +272,17 @@ class CatViewProvider {
                     let prevState = null;
                     let anim = null;
                     let index = 0;
-
+                    let flagStart = false;
+                
                     window.addEventListener('message', event => {
                         const state = event.data.state;
                         if (state === prevState) return;
 
+                        freePrevSpeech();
                         const petImage = document.getElementById('pet-image');
                         petImage.style.display = "block";
 
+                        let flag = true;
                         if (anim) clearInterval(anim); 
                         if (state === "angry") {
                             startAnim(animAngry);
@@ -287,12 +296,21 @@ class CatViewProvider {
                             startAnim(animSuccess);
                         } else if (state === "absent") {
                             petImage.src = images[state];   
+                            flag = false;
                         } else {
+                            flag = false;
                             const imageName = images[state] || images.happy;
                             petImage.src = imageName;   
                         }
                     
-                        
+                        if (flagStart) {
+                            if (flag && Math.random() > 0.90) {
+                                tellFunnyFact(state);
+                            }
+                        } else {
+                            flagStart = true;
+                        }
+    
                         prevState = state;
                     });
 
@@ -311,6 +329,93 @@ class CatViewProvider {
                     }
 
 
+                </script>
+                <script>
+                    const angrySpeech = [
+                        "ААААААААААААААААААААААААААА",
+                        "ХМПФфффффффффффффффф...",
+                        "Если у кода был бы ад, то этот кусок дерьма там точно был",
+                        "Может, мне уйти в дворники?",
+                        "Я не тупой(-ая), это лишь временно...",
+                        "Наверное, стоит пойти заняться чем-нибудь другим...",
+                        "ctrl-z и ошибок, наверное, не будет",
+                        "у меня же не запятая или скобочка потеряна, правда?...",
+                        "rm this_file",
+                        "можно мне вместо этого на экзамен с анекдотами?...",
+                        "(ノಠ益ಠ)ノ彡▬▬ι══════ﺤ",
+                        "(◣_◢)",
+                        "✨🗡️(•̀ᴗ•́)و ̑̑✨"
+                        
+                    ];
+
+                    const neutralSpeech = [
+                        "Как же ж ты задолбал...",
+                        "Иртегова на тебя нет...",
+                        "Тупая последовательность байтов...",
+                        "надеюсь, этих ошибок долго не будет...",
+                        "даааааааааа, это прекраааааааасный код",
+                        "интересно, может он и так нормально будет работать?...",
+                        "._.",
+                        "(¿_?)"
+                    ];
+
+                    const happySpeech = [
+                        "Мир прекрасен!",
+                        "Этот код отличный и (наверное) рабочий!",
+                        "Все будет хорошо!",
+                        'Я точно это хорошо сдам!',
+                        "Сегодня точно ничего не сломается!",
+                        "(✯◡✯)",
+                        "UwU",
+
+                    ];
+
+                    const failedSpeech = [
+                        "да за что мне это...",
+                        "работай. Пожалуйста",
+                        "ладно, бывает, исправим",
+                        "segfault? нет связи? или команда просто тупая?",
+                        "эхххххххх",
+                        "хммммммммммммм",
+                        "(⊙_⊙;)"
+                    ];
+
+                    const successSpeech = [
+                        "Ура!",
+                        "Yata!",
+                        "Хорошо, когда есть что-то хорошее",
+                        "Надеюсь, такой результат будет всегда",
+                        "Победа!",
+                        "Это было трудно, но это свершилось",
+                        "ଘ(੭ˊ꒳ˋ)੭",
+                        "(U ^ᴥ^ U)"
+
+                    ];
+
+                    function tellFunnyFact(state) {
+                        const elem = document.getElementById('funny-facts');
+                        let speech = null;
+                        if (state == "angry") {
+                            speech = angrySpeech;
+                        } else if (state == "neutral") {
+                            speech = neutralSpeech;
+                        } else if (state == "success") {
+                            speech = successSpeech
+                        } else if (state == "happy") {
+                            speech = happySpeech;
+                        } else if (state == "failed") {
+                            speech = failedSpeech;
+                        } else {
+                            return;
+                        }
+                        
+                        elem.innerText = speech[Math.floor(Math.random() * speech.length)];    
+                    }
+
+                    function freePrevSpeech() {
+                        const elem = document.getElementById('funny-facts');
+                        elem.innerText = "";    
+                    }
                 </script>
             </body>
             </html>
