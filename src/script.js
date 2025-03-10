@@ -70,7 +70,7 @@ class CatViewProvider {
 
             this._timeout = setTimeout(() => {
                 this.setState(this._status, this._status);
-            }, 10000);
+            }, 5000);
         
         });
     }

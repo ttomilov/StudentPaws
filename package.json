@@ -3,7 +3,7 @@
   "publisher": "23216",
   "displayName": "Student Paws",
   "description": "Very cute programmer cat",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "engines": {
     "vscode": "^1.97.0"
   },
